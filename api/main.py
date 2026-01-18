@@ -33,8 +33,9 @@ class Item(BaseModel):
 # Add item
 @app.post("/api/items")
 def add_item(item: Item):
-    doc_ref = db.collection("items").add(item.dict())
-    return {"id": doc_ref[1].id}
+    doc_ref = db.collection("items").document(item.name)
+    doc_ref.set(item.dict())
+    return {"id": item.name}
 
 # Get all items
 @app.get("/api/items")
