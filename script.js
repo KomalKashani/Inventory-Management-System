@@ -1,4 +1,4 @@
-    const API = "http://127.0.0.1:9000/api";
+    const API = "https://inventory-system-seven-jet.vercel.app/api";
 
     async function loadItems() {
     const res = await fetch(`${API}/items`);
