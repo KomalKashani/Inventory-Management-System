@@ -4,10 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1 import Increment
+import os
+import json
 
 
 # Firebase init
-cred = credentials.Certificate("firebase_key.json")
+firebase_key = os.environ.get("FIREBASE_KEY_JSON")
+cred = credentials.Certificate(json.loads(firebase_key))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -28,13 +31,13 @@ class Item(BaseModel):
     count: int
 
 # Add item
-@app.post("/items")
+@app.post("/api/items")
 def add_item(item: Item):
     doc_ref = db.collection("items").add(item.dict())
     return {"id": doc_ref[1].id}
 
 # Get all items
-@app.get("/items")
+@app.get("/api/items")
 def get_items():
     items = []
     for doc in db.collection("items").stream():
@@ -44,7 +47,7 @@ def get_items():
     return items
 
 # Update item
-@app.put("/items/{name}")
+@app.put("/api/items/{name}")
 def update_item(name: str, item: Item):
     doc = db.collection("items").document(name)
     if not doc.get().exists:
@@ -52,7 +55,7 @@ def update_item(name: str, item: Item):
     doc.set(item.dict())
     return {"message": "Item updated"}
 
-@app.patch("/items/{item_id}/increase")
+@app.patch("/api/items/{item_id}/increase")
 def increase_count(item_id: str):
     doc = db.collection("items").document(item_id)
     if not doc.get().exists:
@@ -60,7 +63,7 @@ def increase_count(item_id: str):
     doc.update({"count": Increment(1)})
 
 
-@app.patch("/items/{name}/decrease")
+@app.patch("/api/items/{name}/decrease")
 def decrease_count(name: str):
     doc = db.collection("items").document(name)
     snap = doc.get()
@@ -74,7 +77,7 @@ def decrease_count(name: str):
     return {"message": "Count decreased"}
 
 # Delete item
-@app.delete("/items/{item_id}")
+@app.delete("/api/items/{item_id}")
 def delete_item(item_id: str):
     db.collection("items").document(item_id).delete()
     return {"message": "Item deleted"}
